@@ -81,6 +81,7 @@
       line-height: 1.55;
       font-weight: 700;
     }
+    .calendar-swipe-hint { display: none; }
 
     /* 滑動外層舞台 */
     .stage-wrapper {
@@ -134,6 +135,7 @@
       cursor: grab;
       cursor: -webkit-grab;
       -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y pinch-zoom;
       scrollbar-width: none;
     }
     .scroll-stage::-webkit-scrollbar {
@@ -312,7 +314,7 @@
       .calendar-status { margin-top: 7px; font-size: 0.875rem; }
       .stage-wrapper { margin-top: 6px; }
       .scroll-stage { padding-block: 12px 16px; border-radius: 18px; }
-      .spectrum-track { padding-inline: clamp(10px, 4vw, 22px); }
+      .spectrum-track { padding-inline: var(--calendar-edge-space, clamp(10px, 4vw, 22px)); }
       .color-column {
         flex-basis: clamp(104px, 37vw, 156px);
         height: 410px;
@@ -325,6 +327,12 @@
       .col-bottom-stamp { height: 44px; }
       .plb-emblem-img { width: 42px; max-height: 42px; }
       .nav-arrow { display: none; }
+      .calendar-swipe-hint {
+        display: block;
+        margin-top: 8px;
+        color: var(--title-text, #3a2b20);
+        font-size: 0.825rem;
+      }
       footer { margin-top: 24px; padding-top: 12px; font-size: 0.8rem; letter-spacing: 0.5px; line-height: 1.6; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -408,12 +416,13 @@
   <div class="stage-wrapper">
     <button class="nav-arrow nav-prev" type="button" aria-label="向前翻閱" onclick="smoothScroll(-320)">‹</button>
     
-    <div class="scroll-stage" id="scrollStage" role="region" aria-label="全年講座場次" tabindex="0">
+    <div class="scroll-stage" id="scrollStage" role="region" aria-label="全年講座場次" aria-describedby="calendarSwipeHint" tabindex="0">
       <div class="spectrum-track" id="spectrumTrack"></div>
     </div>
 
     <button class="nav-arrow nav-next" type="button" aria-label="向後翻閱" onclick="smoothScroll(320)">›</button>
   </div>
+  <p class="calendar-swipe-hint" id="calendarSwipeHint">在卡片上左右滑動，可查看其他場次</p>
 
   <footer>
     淨土宗竹山念佛會 ｜ 南投縣竹山鎮大仁路208號  ｜ (049) 2654818
@@ -523,6 +532,22 @@ function showMonth(item) {
   document.getElementById('activeMonthHeader').textContent = item.monthHeader;
 }
 
+function setCalendarEdgeSpace(stage) {
+  const first = document.getElementById('col-0');
+  if (!first) return;
+  const space = Math.max(0, (stage.clientWidth - first.getBoundingClientRect().width) / 2);
+  stage.style.setProperty('--calendar-edge-space', `${space}px`);
+}
+
+function calendarViewportCenter(stage) {
+  return stage.getBoundingClientRect().left + stage.clientLeft + stage.clientWidth / 2;
+}
+
+function centerLecture(stage, column) {
+  const rect = column.getBoundingClientRect();
+  stage.scrollLeft += rect.left + rect.width / 2 - calendarViewportCenter(stage);
+}
+
 function openAtUpcomingLecture(now = new Date()) {
   const today = taipeiDateKey(now);
   const { upcoming, display } = selectOpeningLecture(today);
@@ -537,10 +562,10 @@ function openAtUpcomingLecture(now = new Date()) {
     status.textContent = '2027 年有日期的講座都已結束。';
   }
   status.hidden = false;
-  const stageRect = stage.getBoundingClientRect();
-  const rect = column.getBoundingClientRect();
-  stage.scrollLeft += (rect.left + rect.width / 2) - (stageRect.left + stageRect.width / 2);
+  setCalendarEdgeSpace(stage);
+  centerLecture(stage, column);
   showMonth(display.item);
+  return display.index;
 }
 
 // 宣紙絲絮質感層
@@ -593,9 +618,20 @@ function smoothScroll(offset) {
   }
 }
 
-function setupDragAndScroll() {
+function setupDragAndScroll(openingIndex = 0) {
   const stage = document.getElementById('scrollStage');
   let previousScroll = stage.scrollLeft;
+  let activeIndex = openingIndex;
+  let previousWidth = stage.clientWidth;
+  const fitTrack = () => {
+    if (stage.clientWidth === previousWidth) return;
+    previousWidth = stage.clientWidth;
+    setCalendarEdgeSpace(stage);
+    centerLecture(stage, document.getElementById(`col-${activeIndex}`));
+    previousScroll = stage.scrollLeft;
+  };
+  if (typeof ResizeObserver === 'function') new ResizeObserver(fitTrack).observe(stage);
+  else window.addEventListener('resize', fitTrack, { passive: true });
 
   let isDown = false;
   let startX;
@@ -659,8 +695,7 @@ function setupDragAndScroll() {
         rafPending = false;
         if (stage.scrollLeft === previousScroll) return;
         previousScroll = stage.scrollLeft;
-        const stageRect = stage.getBoundingClientRect();
-        const centerX = stageRect.left + stageRect.width / 2;
+        const centerX = calendarViewportCenter(stage);
 
         let closestIdx = 0;
         let minDiff = Infinity;
@@ -677,7 +712,10 @@ function setupDragAndScroll() {
         });
 
         const activeItem = allEvents[closestIdx];
-        if (activeItem) showMonth(activeItem);
+        if (activeItem) {
+          activeIndex = closestIdx;
+          showMonth(activeItem);
+        }
       });
       rafPending = true;
     }
@@ -685,8 +723,7 @@ function setupDragAndScroll() {
 }
 
 renderColumns();
-openAtUpcomingLecture();
-setupDragAndScroll();
+setupDragAndScroll(openAtUpcomingLecture());
 </script>
 </body>
 </html>
