@@ -75,13 +75,15 @@
     }
 
     .calendar-status {
-      margin-top: 10px;
+      max-width: 100%;
+      margin-top: 6px;
       color: var(--title-text, #3a2b20);
       font-size: 0.95rem;
       line-height: 1.55;
       font-weight: 700;
+      text-align: center;
+      text-wrap: balance;
     }
-    .calendar-swipe-hint { display: none; }
 
     /* 滑動外層舞台 */
     .stage-wrapper {
@@ -126,12 +128,7 @@
     .scroll-stage {
       width: 100%;
       overflow-x: auto;
-      padding: 24px 0 32px;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.42);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.75);
-      box-shadow: 0 16px 40px rgba(70, 50, 30, 0.06);
+      padding: 4px 0 8px;
       cursor: grab;
       cursor: -webkit-grab;
       -webkit-overflow-scrolling: touch;
@@ -295,15 +292,29 @@
     /* 頁尾固定文字 */
     footer {
       text-align: center;
-      margin-top: 52px;
-      padding-top: 24px;
+      width: min(100%, 760px);
+      margin-top: 28px;
+      padding-top: 16px;
       border-top: 1px solid rgba(130, 105, 80, 0.25);
-      font-size: 0.95rem;
       color: #4a3a2d;
-      letter-spacing: 2px;
+      font-size: clamp(0.875rem, 1.7vw, 0.95rem);
+      letter-spacing: 0.04em;
+      line-height: 1.6;
       font-weight: 600;
       position: relative;
       z-index: 1;
+    }
+    .calendar-contact {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: baseline;
+      gap: 4px 18px;
+      font-style: normal;
+    }
+    .calendar-contact-phone {
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
 
     @media (max-width: 600px) {
@@ -311,9 +322,9 @@
       header { margin-bottom: 12px; }
       header h1 { font-size: clamp(1.3rem, 5.5vw, 2rem); letter-spacing: 0.08em; }
       .active-month-bar { font-size: clamp(0.9rem, 4vw, 1.13rem); letter-spacing: 0.08em; }
-      .calendar-status { margin-top: 7px; font-size: 0.875rem; }
+      .calendar-status { margin-top: 4px; font-size: 0.875rem; }
       .stage-wrapper { margin-top: 6px; }
-      .scroll-stage { padding-block: 12px 16px; border-radius: 18px; }
+      .scroll-stage { padding-block: 2px 6px; }
       .spectrum-track { padding-inline: var(--calendar-edge-space, clamp(10px, 4vw, 22px)); }
       .color-column {
         flex-basis: clamp(104px, 37vw, 156px);
@@ -327,13 +338,10 @@
       .col-bottom-stamp { height: 44px; }
       .plb-emblem-img { width: 42px; max-height: 42px; }
       .nav-arrow { display: none; }
-      .calendar-swipe-hint {
-        display: block;
-        margin-top: 8px;
-        color: var(--title-text, #3a2b20);
-        font-size: 0.825rem;
-      }
-      footer { margin-top: 24px; padding-top: 12px; font-size: 0.8rem; letter-spacing: 0.5px; line-height: 1.6; }
+      footer { margin-top: 18px; padding-top: 10px; }
+    }
+    @media (max-width: 480px) {
+      .calendar-contact { flex-direction: column; align-items: center; }
     }
     @media (prefers-reduced-motion: reduce) {
       body, .active-month-bar { transition: none; }
@@ -410,22 +418,25 @@
   <header>
     <h1>2027年 淨土講座行事曆</h1>
     <div class="active-month-bar" id="activeMonthHeader">一月 歲初寒冷・霜天月白</div>
-    <p class="calendar-status" id="calendarStatus" hidden></p>
   </header>
 
   <div class="stage-wrapper">
     <button class="nav-arrow nav-prev" type="button" aria-label="向前翻閱" onclick="smoothScroll(-320)">‹</button>
     
-    <div class="scroll-stage" id="scrollStage" role="region" aria-label="全年講座場次" aria-describedby="calendarSwipeHint" tabindex="0">
+    <div class="scroll-stage" id="scrollStage" role="region" aria-label="全年講座場次" tabindex="0">
       <div class="spectrum-track" id="spectrumTrack"></div>
     </div>
 
     <button class="nav-arrow nav-next" type="button" aria-label="向後翻閱" onclick="smoothScroll(320)">›</button>
   </div>
-  <p class="calendar-swipe-hint" id="calendarSwipeHint">在卡片上左右滑動，可查看其他場次</p>
+  <p class="calendar-status" id="calendarStatus" hidden></p>
 
   <footer>
-    淨土宗竹山念佛會 ｜ 南投縣竹山鎮大仁路208號  ｜ (049) 2654818
+    <address class="calendar-contact">
+      <span>淨土宗竹山念佛會</span>
+      <span>南投縣竹山鎮大仁路208號</span>
+      <span class="calendar-contact-phone">(049) 2654818</span>
+    </address>
   </footer>
 </div>
 
