@@ -157,6 +157,7 @@
     .color-column {
       flex: 0 0 156px;
       height: 556px;
+      height: clamp(420px, 64svh, 556px);
       position: relative;
       display: flex;
       flex-direction: column;
@@ -184,7 +185,7 @@
     .color-column:hover {
       filter: brightness(1.03);
     }
-    .color-column[aria-current="date"]::after {
+    .color-column[aria-current="true"]::after {
       content: '';
       position: absolute;
       inset: 0;
@@ -530,7 +531,7 @@ function openAtUpcomingLecture(now = new Date()) {
   const column = document.getElementById(`col-${display.index}`);
   const status = document.getElementById('calendarStatus');
   if (upcoming) {
-    column.setAttribute('aria-current', 'date');
+    column.setAttribute('aria-current', 'true');
     status.textContent = `${upcoming.key === today ? '今天的講座' : '下一場講座'}：${upcoming.month} 月 ${upcoming.day} 日 · ${upcoming.item.name}`;
   } else {
     status.textContent = '2027 年有日期的講座都已結束。';
