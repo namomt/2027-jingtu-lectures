@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2027年 淨土講座行事曆</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* 全局背景：跟隨滑動呈現淡雅花箋紙色 */
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--theme-bg, #f4eee6);
+      color: #382e27;
+      min-height: 100vh;
+      padding: 40px 16px 60px;
+      transition: background 0.6s cubic-bezier(0.2, 0, 0, 1);
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      position: relative;
+    }
+
+    /* 整個網頁大背景：鋪設宋錦青海波與回紋織錦暗紋 */
+    .global-bg-texture {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.36;
+      mix-blend-mode: multiply;
+    }
+
+    .container {
+      max-width: 1340px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* 頂部標題 */
+    header {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+    header h1 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: clamp(2rem, 3.4vw, 2.75rem);
+      letter-spacing: 5px;
+      color: var(--title-text, #3a2b20);
+      font-weight: 900;
+      text-shadow: 0 1px 3px rgba(255, 255, 255, 0.85);
+      margin-bottom: 10px;
+    }
+
+    /* 動態月份時令標題 */
+    .active-month-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--title-text, #3a2b20);
+      transition: color 0.4s ease;
+    }
+
+    /* 滑動外層舞台 */
+    .stage-wrapper {
+      width: 100%;
+      max-width: 1260px;
+      position: relative;
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 左右導航按鈕 */
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      color: #4a3a2d;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .nav-arrow:hover {
+      background: #ffffff;
+      transform: translateY(-50%) scale(1.08);
+    }
+    .nav-prev { left: -16px; }
+    .nav-next { right: -16px; }
+
+    /* 滑動視窗 */
+    .scroll-stage {
+      width: 100%;
+      overflow-x: auto;
+      padding: 24px 0 32px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.42);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 16px 40px rgba(70, 50, 30, 0.06);
+      cursor: grab;
+      cursor: -webkit-grab;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .scroll-stage::-webkit-scrollbar {
+      display: none;
+    }
+    .scroll-stage.is-dragging {
+      cursor: grabbing;
+      cursor: -webkit-grabbing;
+      scroll-behavior: auto !important;
+    }
+
+    /* 軌道內容 */
+    .spectrum-track {
+      display: inline-flex;
+      gap: 0;
+      padding: 0 40px;
+      pointer-events: none;
+    }
+
+    /* 核心花箋宣紙色譜柱 */
+    .color-column {
+      flex: 0 0 156px;
+      height: 556px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 34px 12px 22px;
+      scroll-snap-align: center;
+      background-color: var(--col-base);
+      background-image: 
+        radial-gradient(circle at 50% 25%, rgba(255,255,255,0.45) 0%, transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.06) 100%);
+      border-right: 1px solid rgba(255, 255, 255, 0.45);
+      overflow: hidden;
+      transition: filter 0.25s ease;
+      pointer-events: auto;
+    }
+    .color-column:first-child {
+      border-top-left-radius: 18px;
+      border-bottom-left-radius: 18px;
+    }
+    .color-column:last-child {
+      border-right: none;
+      border-top-right-radius: 18px;
+      border-bottom-right-radius: 18px;
+    }
+    .color-column:hover {
+      filter: brightness(1.03);
+    }
+
+    /* 宣紙微細絲絮疊加層 */
+    .paper-fiber-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.35;
+      mix-blend-mode: multiply;
+    }
+
+    .column-content {
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    /* 1. 日期區域 */
+    .col-top-box {
+      width: 100%;
+      height: 168px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .col-date-text {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--font-color, #4a3428);
+      opacity: 0.92;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.65);
+    }
+    .col-date-text span {
+      display: block;
+      line-height: 1;
+    }
+    .col-date-text.is-outreach {
+      color: #9c2828;
+      font-weight: 700;
+      opacity: 1;
+    }
+
+    /* 2. 姓名區域 */
+    .col-middle-name {
+      font-family: 'Noto Serif TC', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      padding: 6px 0;
+    }
+    .col-middle-name span {
+      display: block;
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--name-color, #33231a);
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75);
+    }
+
+    /* 3. 底部淨土宗官方宗徽 */
+    .col-bottom-stamp {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 64px;
+      width: 100%;
+      flex-shrink: 0;
+    }
+    .plb-emblem-img {
+      width: 58px;
+      height: auto;
+      max-height: 58px;
+      object-fit: contain;
+      display: block;
+      opacity: 0.94;
+      filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.5));
+    }
+
+    /* 頁尾固定文字 */
+    footer {
+      text-align: center;
+      margin-top: 52px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(130, 105, 80, 0.25);
+      font-size: 0.95rem;
+      color: #4a3a2d;
+      letter-spacing: 2px;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 24px 8px 40px; }
+      .color-column {
+        flex: 0 0 136px;
+        height: 515px;
+        padding: 26px 8px 18px;
+      }
+      .col-top-box { height: 152px; }
+      .col-middle-name span { font-size: 1.6rem; gap: 12px; }
+      .col-bottom-stamp { height: 52px; }
+      .plb-emblem-img { width: 46px; max-height: 46px; }
+      .nav-arrow { display: none; }
+      footer { font-size: 0.8rem; letter-spacing: 1px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 全域 SVG 濾鏡與背景紋理定義 -->
+<svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+  <defs>
+    <!-- 宣紙絲絮濾鏡 -->
+    <filter id="paperFiber" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05 0.06" numOctaves="3" result="noise" />
+      <feColorMatrix type="matrix" values="
+        1 0 0 0 0
+        0 1 0 0 0
+        0 0 1 0 0
+        0 0 0 0.22 0" in="noise" result="coloredNoise" />
+      <feBlend mode="multiply" in="SourceGraphic" in2="coloredNoise" />
+    </filter>
+
+    <!-- 宋錦青海波浪與古回紋大背景紋理 -->
+    <pattern id="globalSongBrocade" width="160" height="160" patternUnits="userSpaceOnUse">
+      <path d="M0 4 H160 M0 12 H160 M0 20 H160 M0 28 H160 M0 36 H160 M0 44 H160 M0 52 H160 M0 60 H160 M0 68 H160 M0 76 H160 M0 84 H160 M0 92 H160 M0 100 H160 M0 108 H160 M0 116 H160 M0 124 H160 M0 132 H160 M0 140 H160 M0 148 H160 M0 156 H160" stroke="#8a7963" stroke-width="0.45" stroke-opacity="0.28"/>
+      <g fill="none" stroke="#786852" stroke-width="1.15" stroke-opacity="0.45">
+        <circle cx="0" cy="160" r="74" stroke-dasharray="16 4 6 4"/>
+        <circle cx="0" cy="160" r="64"/>
+        <circle cx="0" cy="160" r="54" stroke-dasharray="22 5"/>
+        <circle cx="0" cy="160" r="44"/>
+        <circle cx="0" cy="160" r="34" stroke-dasharray="10 4"/>
+        <circle cx="0" cy="160" r="24"/>
+        <circle cx="0" cy="160" r="14"/>
+
+        <circle cx="160" cy="160" r="74" stroke-dasharray="16 4 6 4"/>
+        <circle cx="160" cy="160" r="64"/>
+        <circle cx="160" cy="160" r="54" stroke-dasharray="22 5"/>
+        <circle cx="160" cy="160" r="44"/>
+        <circle cx="160" cy="160" r="34" stroke-dasharray="10 4"/>
+        <circle cx="160" cy="160" r="24"/>
+        <circle cx="160" cy="160" r="14"/>
+
+        <circle cx="80" cy="80" r="74" stroke-dasharray="18 4 6 4"/>
+        <circle cx="80" cy="80" r="64"/>
+        <circle cx="80" cy="80" r="54" stroke-dasharray="14 5"/>
+        <circle cx="80" cy="80" r="44"/>
+        <circle cx="80" cy="80" r="34"/>
+        <circle cx="80" cy="80" r="24" stroke-dasharray="8 4"/>
+        <circle cx="80" cy="80" r="14"/>
+      </g>
+      <g fill="none" stroke="#63533f" stroke-width="1.25" stroke-opacity="0.42">
+        <path d="M58 56 H70 V46 H90 V56 H102 V68 H92 V60 H68 V68 H58 Z"/>
+        <path d="M64 64 H74 V54 H86 V64 H96"/>
+        <path d="M14 130 H28 V120 H42 V130 H34 V138 H20 V130"/>
+        <path d="M118 130 H132 V120 H146 V130 H138 V138 H124 V130"/>
+      </g>
+      <g fill="#6e5d47" fill-opacity="0.4">
+        <circle cx="38" cy="24" r="1.1"/><circle cx="44" cy="29" r="0.9"/><circle cx="33" cy="33" r="1.0"/>
+        <circle cx="122" cy="22" r="1.1"/><circle cx="116" cy="28" r="0.9"/><circle cx="128" cy="32" r="1.0"/>
+        <circle cx="80" cy="14" r="1.0"/><circle cx="74" cy="19" r="0.8"/><circle cx="86" cy="19" r="0.8"/>
+        <circle cx="24" cy="86" r="1.0"/><circle cx="30" cy="92" r="0.9"/><circle cx="18" cy="94" r="0.8"/>
+        <circle cx="136" cy="86" r="1.0"/><circle cx="130" cy="92" r="0.9"/><circle cx="142" cy="94" r="0.8"/>
+      </g>
+    </pattern>
+  </defs>
+</svg>
+
+<!-- 整個網頁大背景宋錦紋理層 -->
+<svg class="global-bg-texture" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="url(#globalSongBrocade)"/>
+</svg>
+
+<div class="container">
+  <header>
+    <h1>2027年 淨土講座行事曆</h1>
+    <div class="active-month-bar" id="activeMonthHeader">一月 歲初寒冷・霜天月白</div>
+  </header>
+
+  <div class="stage-wrapper">
+    <button class="nav-arrow nav-prev" onclick="smoothScroll(-320)">‹</button>
+    
+    <div class="scroll-stage" id="scrollStage">
+      <div class="spectrum-track" id="spectrumTrack"></div>
+    </div>
+
+    <button class="nav-arrow nav-next" onclick="smoothScroll(320)">›</button>
+  </div>
+
+  <footer>
+    淨土宗竹山念佛會 ｜ 南投縣竹山鎮大仁路208號  ｜ (049) 2654818
+  </footer>
+</div>
+
+<script>
+// 2027 全年排定場次
+const allEvents = [
+  // 1-2月 (寒冬初春：雲門・天水碧・清月藍)
+  { monthHeader: "一月 歲初寒冷・霜天月白", bgTheme: "radial-gradient(circle at 50% 15%, #f2f7fa 0%, #e2ecf2 55%, #d1e1eb 100%)", titleColor: "#2b4555", dateChars: ["一","月","〇","七","日","週","四"], name: "淨恩法師", base: "#d8e7ee", fontColor: "#324e60", nameColor: "#1d3646" },
+  { monthHeader: "一月 歲初寒冷・霜天月白", bgTheme: "radial-gradient(circle at 50% 15%, #f2f7fa 0%, #e2ecf2 55%, #d1e1eb 100%)", titleColor: "#2b4555", dateChars: ["一","月","十","四","日","週","四"], name: "淨愍法師", base: "#d1e3ec", fontColor: "#2e4a5d", nameColor: "#1b3444" },
+  { monthHeader: "一月 歲初寒冷・霜天月白", bgTheme: "radial-gradient(circle at 50% 15%, #f2f7fa 0%, #e2ecf2 55%, #d1e1eb 100%)", titleColor: "#2b4555", dateChars: ["一","月","廿","一","日","週","四"], name: "淨至法師", base: "#cbe0e9", fontColor: "#2c485a", nameColor: "#183242" },
+  { monthHeader: "一月 歲初寒冷・霜天月白", bgTheme: "radial-gradient(circle at 50% 15%, #f2f7fa 0%, #e2ecf2 55%, #d1e1eb 100%)", titleColor: "#2b4555", dateChars: ["一","月","廿","八","日","週","四"], name: "淨定法師", base: "#bcd7e2", fontColor: "#274254", nameColor: "#142d3d" },
+  { monthHeader: "二月 早春雨水・春水初生", bgTheme: "radial-gradient(circle at 50% 15%, #eff5f7 0%, #d8e8ec 55%, #c5dce2 100%)", titleColor: "#23414a", dateChars: ["二","月","十","八","日","週","四"], name: "淨默法師", base: "#b4d3db", fontColor: "#233f47", nameColor: "#122a31" },
+  { monthHeader: "二月 早春雨水・春水初生", bgTheme: "radial-gradient(circle at 50% 15%, #eff5f7 0%, #d8e8ec 55%, #c5dce2 100%)", titleColor: "#23414a", dateChars: ["二","月","廿","五","日","週","四"], name: "淨定法師", base: "#a5c9d3", fontColor: "#1f3a42", nameColor: "#0f262c" },
+
+  // 3-4月 (陽春煙柳：余白・蘭苕・碧波翠微)
+  { monthHeader: "三月 驚蟄春分・青梅碧柳", bgTheme: "radial-gradient(circle at 50% 15%, #f3f8f5 0%, #e1efe7 55%, #cee4d7 100%)", titleColor: "#204634", dateChars: ["三","月","〇","四","日","週","四"], name: "淨威法師", base: "#d9e8dd", fontColor: "#284b39", nameColor: "#173626" },
+  { monthHeader: "三月 驚蟄春分・青梅碧柳", bgTheme: "radial-gradient(circle at 50% 15%, #f3f8f5 0%, #e1efe7 55%, #cee4d7 100%)", titleColor: "#204634", dateChars: ["三","月","十","一","日","週","四"], name: "淨柏法師", base: "#cbdfd1", fontColor: "#254735", nameColor: "#143222" },
+  { monthHeader: "三月 驚蟄春分・青梅碧柳", bgTheme: "radial-gradient(circle at 50% 15%, #f3f8f5 0%, #e1efe7 55%, #cee4d7 100%)", titleColor: "#204634", dateChars: ["三","月","十","八","日","週","四"], name: "淨至法師", base: "#bdd7c4", fontColor: "#224230", nameColor: "#122d1e" },
+  { monthHeader: "三月 驚蟄春分・青梅碧柳", bgTheme: "radial-gradient(circle at 50% 15%, #f3f8f5 0%, #e1efe7 55%, #cee4d7 100%)", titleColor: "#204634", dateChars: ["三","月","廿","五","日","週","四"], name: "淨定法師", base: "#afceb7", fontColor: "#1e3c2c", nameColor: "#0f281b" },
+  { monthHeader: "四月 清明穀雨・翠微天青", bgTheme: "radial-gradient(circle at 50% 15%, #f0f7f2 0%, #d8ebd9 55%, #c0dec4 100%)", titleColor: "#1a4128", dateChars: ["四","月","〇","一","日","週","四"], name: "淨護法師", base: "#a9cbb2", fontColor: "#1b3926", nameColor: "#0e2517" },
+  { monthHeader: "四月 清明穀雨・翠微天青", bgTheme: "radial-gradient(circle at 50% 15%, #f0f7f2 0%, #d8ebd9 55%, #c0dec4 100%)", titleColor: "#1a4128", dateChars: ["四","月","〇","八","日","週","四"], name: "淨恩法師", base: "#a3c7ab", fontColor: "#1b3926", nameColor: "#0e2517" },
+  { monthHeader: "四月 清明穀雨・翠微天青", bgTheme: "radial-gradient(circle at 50% 15%, #f0f7f2 0%, #d8ebd9 55%, #c0dec4 100%)", titleColor: "#1a4128", dateChars: ["外","出","弘","法","・","台","中"], name: "淨機法師", base: "#96c09f", fontColor: "#183522", nameColor: "#0b2013", isOutreach: true },
+  { monthHeader: "四月 清明穀雨・翠微天青", bgTheme: "radial-gradient(circle at 50% 15%, #f0f7f2 0%, #d8ebd9 55%, #c0dec4 100%)", titleColor: "#1a4128", dateChars: ["四","月","十","五","日","週","四"], name: "淨默法師", base: "#8ab793", fontColor: "#16311e", nameColor: "#091c10" },
+  { monthHeader: "四月 清明穀雨・翠微天青", bgTheme: "radial-gradient(circle at 50% 15%, #f0f7f2 0%, #d8ebd9 55%, #c0dec4 100%)", titleColor: "#1a4128", dateChars: ["四","月","廿","二","日","週","四"], name: "淨定法師", base: "#7dae87", fontColor: "#132d1a", nameColor: "#07180c" },
+  { monthHeader: "四月 清明穀雨・翠微天青", bgTheme: "radial-gradient(circle at 50% 15%, #f0f7f2 0%, #d8ebd9 55%, #c0dec4 100%)", titleColor: "#1a4128", dateChars: ["四","月","廿","九","日","週","四"], name: "淨開法師", base: "#72a47d", fontColor: "#102917", nameColor: "#051509" },
+
+  // 5-6月 (初夏清和：桑蕾・太一・密陀僧溫玉)
+  { monthHeader: "五月 立夏小滿・金槐初薰", bgTheme: "radial-gradient(circle at 50% 15%, #faf6eb 0%, #f2ebd2 55%, #e6dcb8 100%)", titleColor: "#574015", dateChars: ["五","月","〇","六","日","週","四"], name: "淨威法師", base: "#ede1bd", fontColor: "#543e16", nameColor: "#392708" },
+  { monthHeader: "五月 立夏小滿・金槐初薰", bgTheme: "radial-gradient(circle at 50% 15%, #faf6eb 0%, #f2ebd2 55%, #e6dcb8 100%)", titleColor: "#574015", dateChars: ["五","月","十","三","日","週","四"], name: "淨護法師", base: "#e8dcba", fontColor: "#523c13", nameColor: "#362406" },
+  { monthHeader: "五月 立夏小滿・金槐初薰", bgTheme: "radial-gradient(circle at 50% 15%, #faf6eb 0%, #f2ebd2 55%, #e6dcb8 100%)", titleColor: "#574015", dateChars: ["外","出","弘","法","・","苗","栗"], name: "淨機法師", base: "#e3d5ad", fontColor: "#4f3811", nameColor: "#332204", isOutreach: true },
+  { monthHeader: "五月 立夏小滿・金槐初薰", bgTheme: "radial-gradient(circle at 50% 15%, #faf6eb 0%, #f2ebd2 55%, #e6dcb8 100%)", titleColor: "#574015", dateChars: ["五","月","廿","〇","日","週","四"], name: "淨至法師", base: "#d8c79c", fontColor: "#48330d", nameColor: "#2c1c02" },
+  { monthHeader: "五月 立夏小滿・金槐初薰", bgTheme: "radial-gradient(circle at 50% 15%, #faf6eb 0%, #f2ebd2 55%, #e6dcb8 100%)", titleColor: "#574015", dateChars: ["五","月","廿","七","日","週","四"], name: "淨定法師", base: "#cdb98a", fontColor: "#422d09", nameColor: "#261701" },
+  { monthHeader: "六月 芒種夏至・琥珀茶金", bgTheme: "radial-gradient(circle at 50% 15%, #f8f2e2 0%, #ebe0c4 55%, #ddcba3 100%)", titleColor: "#4d340b", dateChars: ["六","月","〇","三","日","週","四"], name: "淨護法師", base: "#c8b280", fontColor: "#3f2907", nameColor: "#241501" },
+  { monthHeader: "六月 芒種夏至・琥珀茶金", bgTheme: "radial-gradient(circle at 50% 15%, #f8f2e2 0%, #ebe0c4 55%, #ddcba3 100%)", titleColor: "#4d340b", dateChars: ["六","月","十","〇","日","週","四"], name: "淨柏法師", base: "#c2ab79", fontColor: "#3d2705", nameColor: "#221300" },
+  { monthHeader: "六月 芒種夏至・琥珀茶金", bgTheme: "radial-gradient(circle at 50% 15%, #f8f2e2 0%, #ebe0c4 55%, #ddcba3 100%)", titleColor: "#4d340b", dateChars: ["六","月","十","七","日","週","四"], name: "淨默法師", base: "#b79d69", fontColor: "#372203", nameColor: "#1d0f00" },
+  { monthHeader: "六月 芒種夏至・琥珀茶金", bgTheme: "radial-gradient(circle at 50% 15%, #f8f2e2 0%, #ebe0c4 55%, #ddcba3 100%)", titleColor: "#4d340b", dateChars: ["六","月","廿","四","日","週","四"], name: "淨定法師", base: "#ac9059", fontColor: "#321d01", nameColor: "#190b00" },
+
+  // 7-8月 (盛夏處暑：盈盈・水紅・蘇梅)
+  { monthHeader: "七月 小暑大暑・水紅蘇梅", bgTheme: "radial-gradient(circle at 50% 15%, #faf0f2 0%, #f2dbe0 55%, #e6c5cc 100%)", titleColor: "#612530", dateChars: ["七","月","〇","一","日","週","四"], name: "淨威法師", base: "#eed3d8", fontColor: "#57212b", nameColor: "#3c1119" },
+  { monthHeader: "七月 小暑大暑・水紅蘇梅", bgTheme: "radial-gradient(circle at 50% 15%, #faf0f2 0%, #f2dbe0 55%, #e6c5cc 100%)", titleColor: "#612530", dateChars: ["七","月","十","五","日","週","四"], name: "淨至法師", base: "#e6c3ca", fontColor: "#511b25", nameColor: "#360c14" },
+  { monthHeader: "七月 小暑大暑・水紅蘇梅", bgTheme: "radial-gradient(circle at 50% 15%, #faf0f2 0%, #f2dbe0 55%, #e6c5cc 100%)", titleColor: "#612530", dateChars: ["七","月","廿","二","日","週","四"], name: "淨定法師", base: "#deb1bb", fontColor: "#4b1620", nameColor: "#30080f" },
+  { monthHeader: "八月 立秋處暑・木槿紫屏", bgTheme: "radial-gradient(circle at 50% 15%, #f7edf2 0%, #edd4e2 55%, #dcbad0 100%)", titleColor: "#562243", dateChars: ["八","月","十","九","日","週","四"], name: "淨默法師", base: "#d4a1b0", fontColor: "#45121b", nameColor: "#2a050c" },
+  { monthHeader: "八月 立秋處暑・木槿紫屏", bgTheme: "radial-gradient(circle at 50% 15%, #f7edf2 0%, #edd4e2 55%, #dcbad0 100%)", titleColor: "#562243", dateChars: ["八","月","廿","六","日","週","四"], name: "淨定法師", base: "#c88ea0", fontColor: "#3e0d16", nameColor: "#240309" },
+
+  // 9-10月 (秋風澄懷：金櫱・檀腮・沉香溫栗)
+  { monthHeader: "九月 白露秋分・金櫱檀腮", bgTheme: "radial-gradient(circle at 50% 15%, #f9f2eb 0%, #eddccf 55%, #dec3b0 100%)", titleColor: "#543019", dateChars: ["九","月","〇","二","日","週","四"], name: "淨威法師", base: "#ead1be", fontColor: "#4c2813", nameColor: "#331604" },
+  { monthHeader: "九月 白露秋分・金櫱檀腮", bgTheme: "radial-gradient(circle at 50% 15%, #f9f2eb 0%, #eddccf 55%, #dec3b0 100%)", titleColor: "#543019", dateChars: ["九","月","〇","九","日","週","四"], name: "淨柏法師", base: "#e0c2ad", fontColor: "#47220e", nameColor: "#2d1102" },
+  { monthHeader: "九月 白露秋分・金櫱檀腮", bgTheme: "radial-gradient(circle at 50% 15%, #f9f2eb 0%, #eddccf 55%, #dec3b0 100%)", titleColor: "#543019", dateChars: ["九","月","十","六","日","週","四"], name: "淨至法師", base: "#d5b29b", fontColor: "#411d09", nameColor: "#270d01" },
+  { monthHeader: "九月 白露秋分・金櫱檀腮", bgTheme: "radial-gradient(circle at 50% 15%, #f9f2eb 0%, #eddccf 55%, #dec3b0 100%)", titleColor: "#543019", dateChars: ["九","月","廿","三","日","週","四"], name: "淨定法師", base: "#caa189", fontColor: "#3b1805", nameColor: "#210900" },
+  { monthHeader: "十月 寒露霜降・秋赭澄栗", bgTheme: "radial-gradient(circle at 50% 15%, #f7ede5 0%, #e9d5c6 55%, #d6b8a2 100%)", titleColor: "#4a250f", dateChars: ["十","月","廿","一","日","週","四"], name: "淨默法師", base: "#bf9177", fontColor: "#351302", nameColor: "#1b0600" },
+  { monthHeader: "十月 寒露霜降・秋赭澄栗", bgTheme: "radial-gradient(circle at 50% 15%, #f7ede5 0%, #e9d5c6 55%, #d6b8a2 100%)", titleColor: "#4a250f", dateChars: ["十","月","廿","八","日","週","四"], name: "淨定法師", base: "#b38065", fontColor: "#2f0f00", nameColor: "#160400" },
+
+  // 11-12月 (歲暮深冬：迷樓灰・鴉雛・煙墨玄天)
+  { monthHeader: "十一月 立冬小雪・迷樓鴉雛", bgTheme: "radial-gradient(circle at 50% 15%, #f2f3f5 0%, #e1e4e8 55%, #cfd4db 100%)", titleColor: "#313840", dateChars: ["十","一","月","十","八","日","四"], name: "淨至法師", base: "#d5d9de", fontColor: "#30373e", nameColor: "#1a1f24" },
+  { monthHeader: "十一月 立冬小雪・迷樓鴉雛", bgTheme: "radial-gradient(circle at 50% 15%, #f2f3f5 0%, #e1e4e8 55%, #cfd4db 100%)", titleColor: "#313840", dateChars: ["十","一","月","廿","五","日","四"], name: "淨定法師", base: "#c8ccd2", fontColor: "#2b3138", nameColor: "#161b1f" },
+  { monthHeader: "十二月 大雪冬至・煙墨玄天", bgTheme: "radial-gradient(circle at 50% 15%, #eef0f2 0%, #dcdfe3 55%, #c6ccd2 100%)", titleColor: "#272c33", dateChars: ["十","二","月","〇","九","日","四"], name: "淨柏法師", base: "#bcc1c7", fontColor: "#252b31", nameColor: "#12161a" },
+  { monthHeader: "十二月 大雪冬至・煙墨玄天", bgTheme: "radial-gradient(circle at 50% 15%, #eef0f2 0%, #dcdfe3 55%, #c6ccd2 100%)", titleColor: "#272c33", dateChars: ["十","二","月","十","六","日","四"], name: "淨默法師", base: "#afb5bc", fontColor: "#20252b", nameColor: "#0f1215" },
+  { monthHeader: "十二月 大雪冬至・煙墨玄天", bgTheme: "radial-gradient(circle at 50% 15%, #eef0f2 0%, #dcdfe3 55%, #c6ccd2 100%)", titleColor: "#272c33", dateChars: ["十","二","月","廿","三","日","四"], name: "淨定法師", base: "#a1a9b1", fontColor: "#1b2025", nameColor: "#0b0d10" }
+];
+
+// 宣紙絲絮質感層
+function getPaperFiberSvg() {
+  return `
+    <svg class="paper-fiber-overlay" viewBox="0 0 100 400" preserveAspectRatio="none">
+      <rect width="100%" height="100%" fill="#ffffff" filter="url(#paperFiber)" opacity="0.55"/>
+    </svg>
+  `;
+}
+
+function renderColumns() {
+  const track = document.getElementById('spectrumTrack');
+  let html = '';
+
+  allEvents.forEach((item, idx) => {
+    const dateCharsHtml = item.dateChars.map(ch => `<span>${ch}</span>`).join('');
+    const outreachClass = item.isOutreach ? 'col-date-text is-outreach' : 'col-date-text';
+    const nameCharsHtml = item.name.split('').map(ch => `<span>${ch}</span>`).join('');
+
+    html += `
+      <div class="color-column" id="col-${idx}" style="--col-base: ${item.base}; --font-color: ${item.fontColor}; --name-color: ${item.nameColor};">
+        ${getPaperFiberSvg()}
+        <div class="column-content">
+          <div class="col-top-box">
+            <div class="${outreachClass}">
+              ${dateCharsHtml}
+            </div>
+          </div>
+
+          <div class="col-middle-name">
+            ${nameCharsHtml}
+          </div>
+
+          <div class="col-bottom-stamp">
+            <img class="plb-emblem-img" src="https://plb.tw/tc/images/logo.svg" alt="淨土宗宗徽" draggable="false" />
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  track.innerHTML = html;
+}
+
+function smoothScroll(offset) {
+  const stage = document.getElementById('scrollStage');
+  if (stage) {
+    stage.scrollBy({ left: offset, behavior: 'smooth' });
+  }
+}
+
+function setupDragAndScroll() {
+  const stage = document.getElementById('scrollStage');
+  const monthHeaderEl = document.getElementById('activeMonthHeader');
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+  let velocity = 0;
+  let lastX = 0;
+  let lastTime = 0;
+  let momentumId = null;
+
+  stage.addEventListener('mousedown', (e) => {
+    isDown = true;
+    stage.classList.add('is-dragging');
+    startX = e.pageX - stage.offsetLeft;
+    scrollLeft = stage.scrollLeft;
+    lastX = e.pageX;
+    lastTime = performance.now();
+    cancelAnimationFrame(momentumId);
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDown) return;
+    isDown = false;
+    stage.classList.remove('is-dragging');
+    applyInertia();
+  });
+
+  stage.addEventListener('mouseleave', () => {
+    if (!isDown) return;
+    isDown = false;
+    stage.classList.remove('is-dragging');
+    applyInertia();
+  });
+
+  stage.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - stage.offsetLeft;
+    const walk = (x - startX) * 1.35;
+    stage.scrollLeft = scrollLeft - walk;
+
+    const now = performance.now();
+    const dt = now - lastTime;
+    if (dt > 10) {
+      velocity = (e.pageX - lastX) / dt;
+      lastX = e.pageX;
+      lastTime = now;
+    }
+  });
+
+  function applyInertia() {
+    if (Math.abs(velocity) < 0.1) return;
+    stage.scrollLeft -= velocity * 16;
+    velocity *= 0.94;
+    momentumId = requestAnimationFrame(applyInertia);
+  }
+
+  let rafPending = false;
+  stage.addEventListener('scroll', () => {
+    if (!rafPending) {
+      requestAnimationFrame(() => {
+        const stageRect = stage.getBoundingClientRect();
+        const centerX = stageRect.left + stageRect.width / 2;
+
+        let closestIdx = 0;
+        let minDiff = Infinity;
+
+        const columns = document.querySelectorAll('.color-column');
+        columns.forEach((col, idx) => {
+          const rect = col.getBoundingClientRect();
+          const colCenter = rect.left + rect.width / 2;
+          const diff = Math.abs(centerX - colCenter);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestIdx = idx;
+          }
+        });
+
+        const activeItem = allEvents[closestIdx];
+        if (activeItem) {
+          document.body.style.setProperty('--theme-bg', activeItem.bgTheme);
+          document.body.style.setProperty('--title-text', activeItem.titleColor);
+          monthHeaderEl.innerText = activeItem.monthHeader;
+        }
+        rafPending = false;
+      });
+      rafPending = true;
+    }
+  }, { passive: true });
+}
+
+renderColumns();
+setupDragAndScroll();
+</script>
+</body>
+</html>
